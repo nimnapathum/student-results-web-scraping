@@ -57,7 +57,7 @@ function loadStudentData($csvFile) {
     //     $student['gpa'] = $totalCredits > 0 ? round($totalPoints / $totalCredits, 6) : 0.0;
     // }
 
-    $rows = array_map('str_getcsv', file($csvFile));
+    $rows = array_slice(array_map('str_getcsv', file($csvFile)), 1);
     $students = [];
 
     foreach ($rows as $row) {
