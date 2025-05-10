@@ -1,157 +1,322 @@
-<?php
-// /index.php
-
-include 'includes/updateFunctions.php'; // make sure the loadStudentData() is defined here
-
-$students = loadStudentData('data/students.csv');
-
-// Sort students by GPA in descending order
-usort($students, function ($a, $b) {
-    return $b['gpa'] <=> $a['gpa'];
-});
-?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Student Results</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        table { width: 70%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-        th { background-color: #f2f2f2; }
-
-        #student-panel {
-            position: fixed;
-            right: 0;
-            top: 0;
-            width: 30%;
-            height: 100%;
-            background-color: #f9f9f9;
-            border-left: 1px solid #ccc;
-            padding: 20px;
-            overflow-y: auto;
-            display: none;
-        }
-
-        #student-panel h2, #student-panel h3 {
-            margin-top: 0;
-        }
-
-        .semester-summary {
-            margin-bottom: 15px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px;
-        }
-
-        button.close-btn {
-            float: right;
-            margin-bottom: 10px;
-            padding: 5px 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="shortcut icon" href="graduating-student.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+    <?php
+    include 'includes/updateFunctions.php';
+    $students = loadStudentData('data/students.csv');
+    usort($students, function ($a, $b) {
+        return $b['gpa'] <=> $a['gpa'];
+    });
+    ?>
 
-<h1>Student Results</h1>
+    <div class="container">
+        <div class="main-content">
 
-<table>
-    <thead>
-        <tr>
-            <th>Rank</th>
-            <th>Student Name</th>
-            <th>Index Number</th>
-            <th>GPA</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($students as $index => $student): ?>
-            <tr onclick='showStudentPanel(<?php echo json_encode($student); ?>)'>
-                <td><?= $index + 1 ?></td>
-                <td><?= htmlspecialchars($student['name']) ?></td>
-                <td><?= htmlspecialchars($student['index']) ?></td>
-                <td><?= $student['gpa'] ?></td>
-            </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
+            <div class="content">
+                <h1 class="page-title">Student Results</h1>
 
-<div id="student-panel">
-    <button class="close-btn" onclick="document.getElementById('student-panel').style.display='none'">Close</button>
-    <div id="panel-content"></div>
-</div>
+                <hr>
 
-<script>
-    function getGradePoint(grade) {
-        switch (grade) {
-            case 'A+': case 'A': return 4.0;
-            case 'A-': return 3.7;
-            case 'B+': return 3.3;
-            case 'B': return 3.0;
-            case 'B-': return 2.7;
-            case 'C+': return 2.3;
-            case 'C': return 2.0;
-            case 'C-': return 1.7;
-            case 'D+': return 1.3;
-            case 'D': return 1.0;
-            case 'D-': return 0.7;
-            case 'F': return 0.0;
-            default: return 0.0;
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="label">Total Students</div>
+                            <div class="value"><?= count($students) ?></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="label">Passed Students</div>
+                            <div class="value"><?= count(array_filter($students, function ($s) {
+                                                    return $s['gpa'] >= 2.0;
+                                                })) ?></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="label">Failed Students</div>
+                            <div class="value"><?= count(array_filter($students, function ($s) {
+                                                    return $s['gpa'] < 2.0;
+                                                })) ?></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="label">Average GPA</div>
+                            <div class="value">
+                                <?php
+                                $total = array_sum(array_column($students, 'gpa'));
+                                $count = count($students);
+                                echo number_format($count > 0 ? $total / $count : 0, 2);
+                                ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-section">
+                    <div class="table-header">
+                        <div class="table-title">Student Rankings</div>
+
+                        <div class="search-bar">
+                            <input type="text" placeholder="Search students..." id="studentSearch">
+                            <button><i class="fas fa-search" style="margin-right: 10px;"></i></button>
+                        </div>
+
+                        <div class="filter-buttons">
+                            <button class="filter-button active">
+                                <i class="fas fa-list"></i> All
+                            </button>
+                            <button class="filter-button green">
+                                <i class="fas fa-check"></i> Passed
+                            </button>
+                            <button class="filter-button red">
+                                <i class="fas fa-times"></i> Failed
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-content">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Student Name</th>
+                                    <th>Index Number</th>
+                                    <th>GPA</th>
+                                    <th>Status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($students as $index => $student): ?>
+                                    <tr class="student-row" data-student='<?= json_encode($student) ?>'>
+                                        <td><?= $index + 1 ?></td>
+                                        <td>
+                                            <div class="student-name">
+                                                <div class="student-avatar">
+                                                    <?= substr($student['name'], 0, 1) ?>
+                                                </div>
+                                                <?= htmlspecialchars($student['name']) ?>
+                                            </div>
+                                        </td>
+                                        <td><?= htmlspecialchars($student['index']) ?></td>
+                                        <td><?= $student['gpa'] ?></td>
+                                        <td>
+                                            <span class="status-badge <?= $student['gpa'] >= 2.0 ? 'passed' : 'failed' ?>">
+                                                <?= $student['gpa'] >= 2.0 ? 'Passed' : 'Failed' ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="view-button" onclick="window.location.href='http://localhost/resultsScraper/student-results-web-scraping/student.php?student=<?php echo urlencode($student['index']); ?>&rank=<?php echo $index + 1; ?>'">
+                                                <i class="fas fa-arrow-right"></i>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="student-panel" id="studentPanel">
+        <div class="panel-header">
+            <div class="panel-title">Student Details</div>
+            <button class="close-button" onclick="closeStudentPanel()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="panel-content"></div>
+    </div>
+
+    <script>
+        function getGradePoint(grade) {
+            switch (grade) {
+                case 'A+':
+                case 'A':
+                    return 4.0;
+                case 'A-':
+                    return 3.7;
+                case 'B+':
+                    return 3.3;
+                case 'B':
+                    return 3.0;
+                case 'B-':
+                    return 2.7;
+                case 'C+':
+                    return 2.3;
+                case 'C':
+                    return 2.0;
+                case 'C-':
+                    return 1.7;
+                case 'D+':
+                    return 1.3;
+                case 'D':
+                    return 1.0;
+                case 'D-':
+                    return 0.7;
+                case 'F':
+                    return 0.0;
+                default:
+                    return 0.0;
+            }
         }
-    }
 
-    function showStudentPanel(student) {
-        const panel = document.getElementById('student-panel');
-        const content = document.getElementById('panel-content');
+        function getGradeClass(gpa) {
+            if (gpa >= 3.5) return "grade-excellent";
+            if (gpa >= 2.0) return "grade-average";
+            return "grade-poor";
+        }
 
-        const semesterMap = {};
+        function showStudentDetails(element) {
+            const student = JSON.parse(element.closest('.student-row').dataset.student);
+            const panel = document.getElementById('studentPanel');
+            const content = document.getElementById('panel-content');
+            const overlay = document.getElementById('overlay');
 
-        student.results.forEach(result => {
-            const year = result.year.replace(/\[|\]/g, '');
-            const semester = result.semester.replace(/\[|\]/g, '');
-            const key = `Year ${year} Semester ${semester}`;
+            const semesterMap = {};
 
-            if (!semesterMap[key]) semesterMap[key] = [];
-            semesterMap[key].push(result);
-        });
+            student.results.forEach(result => {
+                const year = result.year.replace(/\[|\]/g, '');
+                const semester = result.semester.replace(/\[|\]/g, '');
+                const key = `Year ${year} Semester ${semester}`;
 
-        let html = `
-            <h2>${student.name}</h2>
-            <p><strong>Index:</strong> ${student.index}</p>
-            <p><strong>Overall GPA:</strong> ${student.gpa}</p>
-            <hr>
-        `;
-
-        for (const [semKey, subjects] of Object.entries(semesterMap)) {
-            let totalCredits = 0, totalPoints = 0;
-
-            subjects.forEach(sub => {
-                const gp = getGradePoint(sub.result);
-                const cr = parseFloat(sub.credits);
-                if (cr > 0) {
-                    totalPoints += gp * cr;
-                    totalCredits += cr;
-                }
+                if (!semesterMap[key]) semesterMap[key] = [];
+                semesterMap[key].push(result);
             });
 
-            const semGPA = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 'N/A';
-
-            html += `
-                <div class="semester-summary">
-                    <h3>${semKey}</h3>
-                    <p><strong>Semester GPA:</strong> ${semGPA}</p>
-                    <ul>
-                        ${subjects.map(s => `<li>${s.subject} (${s.credits} credits): ${s.result}</li>`).join('')}
-                    </ul>
+            let html = `
+                <div class="student-details">
+                    <div class="student-info">
+                        <div class="large-avatar">${student.name.charAt(0)}</div>
+                        <div class="student-meta">
+                            <h3>${student.name}</h3>
+                            <p>Index: ${student.index}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="gpa-indicator">
+                        <div class="gpa-label">Overall GPA</div>
+                        <div class="gpa-value ${getGradeClass(student.gpa)}">${student.gpa}</div>
+                    </div>
                 </div>
             `;
+
+            for (const [semKey, subjects] of Object.entries(semesterMap)) {
+                let totalCredits = 0,
+                    totalPoints = 0;
+
+                subjects.forEach(sub => {
+                    const gp = getGradePoint(sub.result);
+                    const cr = parseFloat(sub.credits);
+                    if (cr > 0) {
+                        totalPoints += gp * cr;
+                        totalCredits += cr;
+                    }
+                });
+
+                const semGPA = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : 'N/A';
+                const gradeClass = getGradeClass(semGPA);
+
+                html += `
+                    <div class="semester-block">
+                        <div class="semester-header">
+                            <div>${semKey}</div>
+                            <div class="semester-gpa ${gradeClass}">${semGPA}</div>
+                        </div>
+                        <div class="course-list">
+                            ${subjects.map(s => `
+                                <div class="course-item">
+                                    <div class="course-name">${s.subject}</div>
+                                    <div class="course-credit">${s.credits} credits</div>
+                                    <div class="course-grade ${getGradeClass(getGradePoint(s.result))}">${s.result}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = html;
+            panel.classList.add('open');
+            overlay.style.display = 'block';
         }
 
-        content.innerHTML = html;
-        panel.style.display = 'block';
-    }
-</script>
+        function closeStudentPanel() {
+            const panel = document.getElementById('studentPanel');
+            const overlay = document.getElementById('overlay');
+            panel.classList.remove('open');
+            overlay.style.display = 'none';
+        }
 
+        document.getElementById('overlay').addEventListener('click', closeStudentPanel);
+
+        // Filter functionality
+        document.getElementById('studentSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.student-row');
+
+            rows.forEach(row => {
+                const studentName = row.querySelector('.student-name').textContent.toLowerCase();
+                const studentIndex = row.cells[2].textContent.toLowerCase();
+
+                if (studentName.includes(searchTerm) || studentIndex.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Filter buttons
+        const filterButtons = document.querySelectorAll('.filter-button');
+        filterButtons.forEach((button, index) => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+
+                const rows = document.querySelectorAll('.student-row');
+                rows.forEach(row => {
+                    const studentGPA = parseFloat(row.cells[3].textContent);
+
+                    if (index === 0) { // All
+                        row.style.display = '';
+                    } else if (index === 1) { // Passed
+                        row.style.display = studentGPA >= 2.0 ? '' : 'none';
+                    } else if (index === 2) { // Failed
+                        row.style.display = studentGPA < 2.0 ? '' : 'none';
+                    }
+                });
+            });
+        });
+    </script>
 </body>
+
 </html>
