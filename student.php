@@ -104,9 +104,9 @@ $student = studentDataByIndex("data/students.csv", $studentIndex);
     <div class="container">
         <div class="student-profile">
             <div class="student-header">
-                <div class="avatar"><?= substr($student['name'], 4, 1) ?></div>
+                <div class="avatar"><?= substr(getName($student['name']), 0, 1) ?></div>
                 <div class="student-info">
-                    <h2 class="student-name"><?= $student['name'] ?></h2>
+                    <h2 class="student-name"><?= getName($student['name']) ?></h2>
                     <p class="student-id">Index Number: <?= $student['index'] ?></p>
                     <div class="rank-badge">
                         <i class="fas fa-trophy"></i>

@@ -1,62 +1,6 @@
 <?php
 
 function loadStudentData($csvFile) {
-    // $rows = array_map('str_getcsv', file($csvFile));
-    // $header = array_shift($rows);
-
-    // $students = [];
-
-    // foreach ($rows as $row) {
-    //     // Extract values using headers
-    //     $assoc = array_combine($header, $row);
-
-    //     // Clean values
-    //     $name = trim(str_replace('Name: ', '', $assoc['Name']));
-    //     $index = trim(str_replace('Index No.: ', '', $assoc['Index']));
-
-    //     // Create unique key
-    //     $key = $index;
-
-    //     if (!isset($students[$key])) {
-    //         $students[$key] = [
-    //             'name' => $name,
-    //             'index' => $index,
-    //             'results' => [],
-    //             'gpa' => 0
-    //         ];
-    //     }
-
-    //     $subject = $assoc['Subject'];
-    //     $year = $assoc['Year'];
-    //     $semester = $assoc['Semester'];
-    //     $credits = $assoc['Credits'];
-    //     $result = $assoc['Result'];
-
-    //     $students[$key]['results'][] = [
-    //         'subject' => $subject,
-    //         'year' => $year,
-    //         'semester' => $semester,
-    //         'credits' => $credits,
-    //         'result' => $result
-    //     ];
-    // }
-
-    // // Calculate GPA per student
-    // foreach ($students as &$student) {
-    //     $totalPoints = 0;
-    //     $totalCredits = 0;
-    //     foreach ($student['results'] as $r) {
-    //         $grade = $r['result'];
-    //         $credits = floatval($r['credits']);
-    //         $points = getGradePoint($grade);
-    //         if ($credits > 0) {
-    //             $totalPoints += $points * $credits;
-    //             $totalCredits += $credits;
-    //         }
-    //     }
-    //     $student['gpa'] = $totalCredits > 0 ? round($totalPoints / $totalCredits, 6) : 0.0;
-    // }
-
     $rows = array_slice(array_map('str_getcsv', file($csvFile)), 1);
     $students = [];
 
@@ -229,4 +173,22 @@ function studentDataByIndex($csvFile, $targetIndex) {
     }
 
     return $student;
+}
+
+function getName($nameWithInitials) {
+    $filePath = 'data/custom_names.json';
+
+    // Check if the file exists
+    if (!file_exists($filePath)) {
+        return null; // or handle error as needed
+    }
+
+    // Get the file contents
+    $json = file_get_contents($filePath);
+
+    // Decode JSON into associative array
+    $nameMap = json_decode($json, true);
+
+    // Return the full name if found, or null
+    return $nameMap[$nameWithInitials] ?? null;
 }

@@ -97,46 +97,6 @@
                         </div>
                     </div>
                     <div class="table-content">
-                        <!-- <table>
-                            <thead>
-                                <tr>
-                                    <th>Rank</th>
-                                    <th>Student Name</th>
-                                    <th>Index Number</th>
-                                    <th>GPA</th>
-                                    <th>Status</th>
-                                    <th>Details</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                
-                                <?php foreach ($students as $index => $student): ?>
-                                    <tr class="student-row" data-student='<?= json_encode($student) ?>'>
-                                        <td><?= $index + 1 ?></td>
-                                        <td>
-                                            <div class="student-name">
-                                                <div class="student-avatar">
-                                                    <?= substr($student['name'], 0, 1) ?>
-                                                </div>
-                                                <?= htmlspecialchars($student['name']) ?>
-                                            </div>
-                                        </td>
-                                        <td><?= htmlspecialchars($student['index']) ?></td>
-                                        <td><?= $student['gpa'] ?></td>
-                                        <td>
-                                            <span class="status-badge <?= $student['gpa'] >= 2.0 ? 'passed' : 'failed' ?>">
-                                                <?= $student['gpa'] >= 2.0 ? 'Passed' : 'Failed' ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="view-button" onclick="window.location.href='http://localhost/resultsScraper/student-results-web-scraping/student.php?student=<?php echo urlencode($student['index']); ?>&rank=<?php echo $index + 1; ?>'">
-                                                <i class="fas fa-arrow-right"></i>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table> -->
                         <?php
                         $rank = 1;
                         $previousGpa = null;
@@ -172,9 +132,9 @@
                                         <td>
                                             <div class="student-name">
                                                 <div class="student-avatar">
-                                                    <?= substr($student['name'], 0, 1) ?>
+                                                    <?= substr(getName($student['name']), 0, 1) ?>
                                                 </div>
-                                                <?= htmlspecialchars($student['name']) ?>
+                                                <?= getName($student['name']) ?>
                                             </div>
                                         </td>
                                         <td><?= htmlspecialchars($student['index']) ?></td>
