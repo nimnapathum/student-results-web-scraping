@@ -6,7 +6,7 @@
     <title>Student Results</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="shortcut icon" href="graduating-student.png" type="image/png">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles/style.css">
 </head>
 
 <body>
@@ -97,7 +97,7 @@
                         </div>
                     </div>
                     <div class="table-content">
-                        <table>
+                        <!-- <table>
                             <thead>
                                 <tr>
                                     <th>Rank</th>
@@ -109,6 +109,7 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                
                                 <?php foreach ($students as $index => $student): ?>
                                     <tr class="student-row" data-student='<?= json_encode($student) ?>'>
                                         <td><?= $index + 1 ?></td>
@@ -135,7 +136,64 @@
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
+                        </table> -->
+                        <?php
+                        $rank = 1;
+                        $previousGpa = null;
+                        $sameRankCount = 0;
+                        ?>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Student Name</th>
+                                    <th>Index Number</th>
+                                    <th>GPA</th>
+                                    <th>Status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($students as $index => $student): ?>
+                                    <?php
+                                    if ($previousGpa !== null && $student['gpa'] == $previousGpa) {
+                                        $displayRank = $rank;
+                                        $sameRankCount++;
+                                    } else {
+                                        $rank = $rank + $sameRankCount;
+                                        $displayRank = $rank;
+                                        $sameRankCount = 1;
+                                    }
+                                    $previousGpa = $student['gpa'];
+                                    ?>
+                                    <tr class="student-row" data-student='<?= json_encode($student) ?>'>
+                                        <td><?= $displayRank ?></td>
+                                        <td>
+                                            <div class="student-name">
+                                                <div class="student-avatar">
+                                                    <?= substr($student['name'], 0, 1) ?>
+                                                </div>
+                                                <?= htmlspecialchars($student['name']) ?>
+                                            </div>
+                                        </td>
+                                        <td><?= htmlspecialchars($student['index']) ?></td>
+                                        <td><?= $student['gpa'] ?></td>
+                                        <td>
+                                            <span class="status-badge <?= $student['gpa'] >= 2.0 ? 'passed' : 'failed' ?>">
+                                                <?= $student['gpa'] >= 2.0 ? 'Passed' : 'Failed' ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="view-button" onclick="window.location.href='http://localhost/resultsScraper/student-results-web-scraping/student.php?student=<?= urlencode($student['index']); ?>&rank=<?= $displayRank; ?>'">
+                                                <i class="fas fa-arrow-right"></i>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
                         </table>
+
                     </div>
                 </div>
             </div>

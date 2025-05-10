@@ -1,10 +1,63 @@
 <?php
 
 function loadStudentData($csvFile) {
-
     // $rows = array_map('str_getcsv', file($csvFile));
-    $rows = array_slice(array_map('str_getcsv', file($csvFile)), 1);
+    // $header = array_shift($rows);
 
+    // $students = [];
+
+    // foreach ($rows as $row) {
+    //     // Extract values using headers
+    //     $assoc = array_combine($header, $row);
+
+    //     // Clean values
+    //     $name = trim(str_replace('Name: ', '', $assoc['Name']));
+    //     $index = trim(str_replace('Index No.: ', '', $assoc['Index']));
+
+    //     // Create unique key
+    //     $key = $index;
+
+    //     if (!isset($students[$key])) {
+    //         $students[$key] = [
+    //             'name' => $name,
+    //             'index' => $index,
+    //             'results' => [],
+    //             'gpa' => 0
+    //         ];
+    //     }
+
+    //     $subject = $assoc['Subject'];
+    //     $year = $assoc['Year'];
+    //     $semester = $assoc['Semester'];
+    //     $credits = $assoc['Credits'];
+    //     $result = $assoc['Result'];
+
+    //     $students[$key]['results'][] = [
+    //         'subject' => $subject,
+    //         'year' => $year,
+    //         'semester' => $semester,
+    //         'credits' => $credits,
+    //         'result' => $result
+    //     ];
+    // }
+
+    // // Calculate GPA per student
+    // foreach ($students as &$student) {
+    //     $totalPoints = 0;
+    //     $totalCredits = 0;
+    //     foreach ($student['results'] as $r) {
+    //         $grade = $r['result'];
+    //         $credits = floatval($r['credits']);
+    //         $points = getGradePoint($grade);
+    //         if ($credits > 0) {
+    //             $totalPoints += $points * $credits;
+    //             $totalCredits += $credits;
+    //         }
+    //     }
+    //     $student['gpa'] = $totalCredits > 0 ? round($totalPoints / $totalCredits, 6) : 0.0;
+    // }
+
+    $rows = array_map('str_getcsv', file($csvFile));
     $students = [];
 
     foreach ($rows as $row) {
@@ -44,12 +97,18 @@ function loadStudentData($csvFile) {
             $prev = $students[$studentKey]['results'][$subject]['result'];
             $new = $result;
 
-            $prevPoint = getGradePoint($prev);
-            $newPoint = getGradePoint($new);
+            if ($prev == 'MC') {
+                // If previous result is MC, accept new result
+                $students[$studentKey]['results'][$subject]['result'] = $new;
+            }
+            else {
+                $prevPoint = getGradePoint($prev);
+                $newPoint = getGradePoint($new);
 
-            if ($newPoint >= $prevPoint) {
-                // Accept new result, but if it's worse than C, cap it
-                $students[$studentKey]['results'][$subject]['result'] = $newPoint >= getGradePoint("C") ? 'C' : $prev;
+                if ($newPoint >= $prevPoint) {
+                    // Accept new result, but if it's worse than C, cap it
+                    $students[$studentKey]['results'][$subject]['result'] = $newPoint >= getGradePoint("C") ? 'C' : $prev;
+                }
             }
             // Else: keep original (first) result
         }
@@ -72,7 +131,7 @@ function loadStudentData($csvFile) {
                 $totalCredits += $credit;
             }
         }
-        $student['gpa'] = $totalCredits > 0 ? round($totalPoints / $totalCredits, 10) : 0.0;
+        $student['gpa'] = $totalCredits > 0 ? round($totalPoints / $totalCredits, 6) : 0.0;
     }
 
 

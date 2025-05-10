@@ -17,7 +17,7 @@ $student = studentDataByIndex("data/students.csv", $studentIndex);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <link rel="shortcut icon" href="graduating-student.png" type="image/png">
-    <link rel="stylesheet" href="styleStudents.css">
+    <link rel="stylesheet" href="styles/styleStudents.css">
 </head>
 
 <body>
