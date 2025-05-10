@@ -1,61 +1,133 @@
 <?php
 
 function loadStudentData($csvFile) {
-    $rows = array_map('str_getcsv', file($csvFile));
-    $header = array_shift($rows);
+    // $rows = array_map('str_getcsv', file($csvFile));
+    // $header = array_shift($rows);
 
+    // $students = [];
+
+    // foreach ($rows as $row) {
+    //     // Extract values using headers
+    //     $assoc = array_combine($header, $row);
+
+    //     // Clean values
+    //     $name = trim(str_replace('Name: ', '', $assoc['Name']));
+    //     $index = trim(str_replace('Index No.: ', '', $assoc['Index']));
+
+    //     // Create unique key
+    //     $key = $index;
+
+    //     if (!isset($students[$key])) {
+    //         $students[$key] = [
+    //             'name' => $name,
+    //             'index' => $index,
+    //             'results' => [],
+    //             'gpa' => 0
+    //         ];
+    //     }
+
+    //     $subject = $assoc['Subject'];
+    //     $year = $assoc['Year'];
+    //     $semester = $assoc['Semester'];
+    //     $credits = $assoc['Credits'];
+    //     $result = $assoc['Result'];
+
+    //     $students[$key]['results'][] = [
+    //         'subject' => $subject,
+    //         'year' => $year,
+    //         'semester' => $semester,
+    //         'credits' => $credits,
+    //         'result' => $result
+    //     ];
+    // }
+
+    // // Calculate GPA per student
+    // foreach ($students as &$student) {
+    //     $totalPoints = 0;
+    //     $totalCredits = 0;
+    //     foreach ($student['results'] as $r) {
+    //         $grade = $r['result'];
+    //         $credits = floatval($r['credits']);
+    //         $points = getGradePoint($grade);
+    //         if ($credits > 0) {
+    //             $totalPoints += $points * $credits;
+    //             $totalCredits += $credits;
+    //         }
+    //     }
+    //     $student['gpa'] = $totalCredits > 0 ? round($totalPoints / $totalCredits, 6) : 0.0;
+    // }
+
+    $rows = array_map('str_getcsv', file($csvFile));
     $students = [];
 
     foreach ($rows as $row) {
-        // Extract values using headers
-        $assoc = array_combine($header, $row);
+        // Handle individual columns
+        $nameRaw = trim($row[0]);
+        $indexRaw = trim($row[1]);
+        $subject = trim($row[2]);
+        $year = trim($row[3], "[]");
+        $semester = trim($row[4], "[]");
+        $credits = (float) trim($row[5]);
+        $result = trim($row[6]);
 
-        // Clean values
-        $name = trim(str_replace('Name: ', '', $assoc['Name']));
-        $index = trim(str_replace('Index No.: ', '', $assoc['Index']));
+        $name = str_replace('Name: ', '', $nameRaw);
+        $index = str_replace('Index No.: ', '', $indexRaw);
+        $studentKey = $index;
 
-        // Create unique key
-        $key = $index;
-
-        if (!isset($students[$key])) {
-            $students[$key] = [
+        if (!isset($students[$studentKey])) {
+            $students[$studentKey] = [
                 'name' => $name,
                 'index' => $index,
                 'results' => [],
-                'gpa' => 0
+                'gpa' => 0.0
             ];
         }
 
-        $subject = $assoc['Subject'];
-        $year = $assoc['Year'];
-        $semester = $assoc['Semester'];
-        $credits = $assoc['Credits'];
-        $result = $assoc['Result'];
+        // Group by subject: only one record per subject (handle repeats)
+        if (!isset($students[$studentKey]['results'][$subject])) {
+            $students[$studentKey]['results'][$subject] = [
+                'subject' => $subject,
+                'year' => $year,
+                'semester' => $semester,
+                'credits' => $credits,
+                'result' => $result
+            ];
+        } else {
+            // Handle repeat logic
+            $prev = $students[$studentKey]['results'][$subject]['result'];
+            $new = $result;
 
-        $students[$key]['results'][] = [
-            'subject' => $subject,
-            'year' => $year,
-            'semester' => $semester,
-            'credits' => $credits,
-            'result' => $result
-        ];
+            $prevPoint = getGradePoint($prev);
+            $newPoint = getGradePoint($new);
+
+            if ($newPoint >= $prevPoint) {
+                // Accept new result, but if it's worse than C, cap it
+                $students[$studentKey]['results'][$subject]['result'] = $newPoint >= getGradePoint("C") ? 'C' : $prev;
+            }
+            // Else: keep original (first) result
+        }
     }
 
-    // Calculate GPA per student
+    // Convert results to indexed array
     foreach ($students as &$student) {
+        $results = array_values($student['results']);
+        $student['results'] = $results;
+
+        // GPA Calculation
         $totalPoints = 0;
         $totalCredits = 0;
-        foreach ($student['results'] as $r) {
-            $grade = $r['result'];
-            $credits = floatval($r['credits']);
-            $points = getGradePoint($grade);
-            if ($credits > 0) {
-                $totalPoints += $points * $credits;
-                $totalCredits += $credits;
+        foreach ($results as $res) {
+            $grade = $res['result'];
+            $credit = (float)$res['credits'];
+            $point = getGradePoint($grade);
+            if ($credit > 0) {
+                $totalPoints += $point * $credit;
+                $totalCredits += $credit;
             }
         }
         $student['gpa'] = $totalCredits > 0 ? round($totalPoints / $totalCredits, 6) : 0.0;
     }
+
 
     return array_values($students); // reindex for display
 }
