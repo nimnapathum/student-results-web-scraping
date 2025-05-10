@@ -125,7 +125,7 @@ function loadStudentData($csvFile) {
                 $totalCredits += $credit;
             }
         }
-        $student['gpa'] = $totalCredits > 0 ? round($totalPoints / $totalCredits, 6) : 0.0;
+        $student['gpa'] = $totalCredits > 0 ? round($totalPoints / $totalCredits, 10) : 0.0;
     }
 
 
